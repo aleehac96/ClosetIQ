@@ -230,29 +230,29 @@ html, body { height: 100%; background: var(--cream); color: var(--ink); font-fam
         <div class="metrics">
           <div class="metric">
             <div class="metric-label">Total pieces</div>
-            <div class="metric-value">47</div>
-            <div class="metric-sub">across 6 categories</div>
+            <div class="metric-value" id="stat-total">0</div>
+            <div class="metric-sub" id="stat-total-sub">add items to start</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Cost-per-wear</div>
-            <div class="metric-value">$4.20</div>
-            <div class="metric-sub up">↓ 31% this season</div>
+            <div class="metric-label">Times worn</div>
+            <div class="metric-value" id="stat-wears">0</div>
+            <div class="metric-sub" id="stat-wears-sub">outfits logged</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Dead stock</div>
-            <div class="metric-value" style="color:var(--bad);">11</div>
-            <div class="metric-sub down">unworn 90+ days</div>
+            <div class="metric-label">Categories</div>
+            <div class="metric-value" id="stat-cats">0</div>
+            <div class="metric-sub">across your closet</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Resale value</div>
-            <div class="metric-value" style="color:var(--good);">$1.2k</div>
-            <div class="metric-sub up">sitting in your closet</div>
+            <div class="metric-label">Most worn</div>
+            <div class="metric-value" id="stat-top" style="font-size:13px;padding-top:4px;">—</div>
+            <div class="metric-sub" id="stat-top-sub">log outfits to see</div>
           </div>
         </div>
 
-        <div class="pull-quote">
-          <div class="pull-quote-text">"One neutral ankle boot unlocks 14 new outfits you already own."</div>
-          <div class="pull-quote-sub">Your #1 AI recommendation</div>
+        <div class="pull-quote" id="pull-quote">
+          <div class="pull-quote-text" id="pull-quote-text">"Upload your first outfit to receive your first insight."</div>
+          <div class="pull-quote-sub" id="pull-quote-sub">Your AI stylist is waiting</div>
         </div>
 
         <div class="card">
@@ -315,40 +315,10 @@ html, body { height: 100%; background: var(--cream); color: var(--ink); font-fam
         <div class="card">
           <div class="card-label">All items — by cost-per-wear</div>
           <div id="closet-list">
-            <div class="item">
-              <div class="swatch" style="background:#2a2420;"></div>
-              <div class="item-body"><div class="item-name">Black wide-leg trousers</div><div class="item-meta">Zara · 80 wears · via Gmail</div></div>
-              <div class="item-right"><div class="cpw good">$0.80</div><div class="cpw-label">/wear</div></div>
-            </div>
-            <div class="item">
-              <div class="swatch" style="background:#e0d5c4;"></div>
-              <div class="item-body"><div class="item-name">Cream blazer</div><div class="item-meta">& Other Stories · 100 wears · via Gmail</div></div>
-              <div class="item-right"><div class="cpw good">$1.20</div><div class="cpw-label">/wear</div></div>
-            </div>
-            <div class="item">
-              <div class="swatch" style="background:#3a3530;"></div>
-              <div class="item-body"><div class="item-name">Black loafers</div><div class="item-meta">Mango · 59 wears · via Gmail</div></div>
-              <div class="item-right"><div class="cpw good">$1.50</div><div class="cpw-label">/wear</div></div>
-            </div>
-            <div class="item">
-              <div class="swatch" style="background:#a08870;"></div>
-              <div class="item-body"><div class="item-name">Camel knit top</div><div class="item-meta">Massimo Dutti · 25 wears · via Gmail</div></div>
-              <div class="item-right"><div class="cpw mid">$3.40</div><div class="cpw-label">/wear</div></div>
-            </div>
-            <div class="item">
-              <div class="swatch" style="background:#c4a878;"></div>
-              <div class="item-body"><div class="item-name">Leopard midi skirt</div><div class="item-meta">Zara · 2 wears · dead stock</div></div>
-              <div class="item-right"><div class="cpw bad">$27.50</div><div class="cpw-label">/wear</div></div>
-            </div>
-            <div class="item">
-              <div class="swatch" style="background:#c8b0b8;"></div>
-              <div class="item-body"><div class="item-name">Pink ruffle blouse</div><div class="item-meta">ASOS · 1 wear · dead stock</div></div>
-              <div class="item-right"><div class="cpw bad">$38.00</div><div class="cpw-label">/wear</div></div>
-            </div>
-            <div class="item">
-              <div class="swatch" style="background:#b89850;"></div>
-              <div class="item-body"><div class="item-name">Sequin bodysuit</div><div class="item-meta">PLT · 1 wear · dead stock</div></div>
-              <div class="item-right"><div class="cpw bad">$47.00</div><div class="cpw-label">/wear</div></div>
+            <div id="closet-empty" style="text-align:center;padding:36px 0;">
+              <div style="font-size:32px;margin-bottom:12px;">◻</div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;font-style:italic;color:var(--ink);margin-bottom:6px;">Your closet is empty</div>
+              <div style="font-size:11px;font-weight:300;color:var(--taupe);letter-spacing:0.04em;">Upload an outfit photo to get started</div>
             </div>
           </div>
         </div>
@@ -705,13 +675,18 @@ async function handlePhoto(input) {
 
 function addAllIdentified() {
   const list = document.getElementById('closet-list');
+
+  // remove empty state if present
+  const empty = document.getElementById('closet-empty');
+  if (empty) empty.remove();
+
   identifiedItems.forEach(item => {
     const existing = Array.from(list.querySelectorAll('.item-name'))
       .find(el => el.textContent.toLowerCase().includes(item.name.toLowerCase().split(' ').slice(-2).join(' ')));
     if (existing) {
       const meta = existing.nextElementSibling;
-      const m = meta.textContent.match(/(\d+) wear/);
-      if (m) meta.textContent = meta.textContent.replace(/\d+ wear/, (parseInt(m[1])+1) + ' wear');
+      const m = meta.textContent.match(/([0-9]+) wear/);
+      if (m) meta.textContent = meta.textContent.replace(/[0-9]+ wear/, (parseInt(m[1])+1) + ' wear');
     } else {
       const div = document.createElement('div');
       div.className = 'item';
@@ -719,9 +694,51 @@ function addAllIdentified() {
       list.prepend(div);
     }
   });
+
+  updateStats();
   identifiedItems = [];
   showStep('success');
   document.getElementById('scroll-area').scrollTop = 0;
+}
+
+function updateStats() {
+  const items = document.querySelectorAll('#closet-list .item');
+  const total = items.length;
+
+  let totalWears = 0;
+  let topItem = null;
+  let topWears = 0;
+  const cats = new Set();
+
+  items.forEach(item => {
+    const meta = item.querySelector('.item-meta');
+    if (meta) {
+      const m = meta.textContent.match(/([0-9]+) wear/);
+      const wears = m ? parseInt(m[1]) : 0;
+      totalWears += wears;
+      if (wears > topWears) {
+        topWears = wears;
+        topItem = item.querySelector('.item-name')?.textContent || null;
+      }
+      const catM = meta.textContent.split('·')[0]?.trim();
+      if (catM) cats.add(catM);
+    }
+  });
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-total-sub').textContent = total === 1 ? '1 piece logged' : total + ' pieces logged';
+  document.getElementById('stat-wears').textContent = totalWears;
+  document.getElementById('stat-wears-sub').textContent = totalWears === 1 ? 'outfit logged' : 'outfits logged';
+  document.getElementById('stat-cats').textContent = cats.size;
+  document.getElementById('stat-top').textContent = topItem ? topItem.split(' ').slice(0,3).join(' ') : '—';
+  document.getElementById('stat-top-sub').textContent = topItem ? topWears + ' wears' : 'log outfits to see';
+
+  if (total > 0) {
+    document.getElementById('pull-quote-text').textContent = total === 1
+      ? '"Great start. Keep logging to unlock personalized insights."'
+      : '"Your most-worn piece tells you everything about your true style."';
+    document.getElementById('pull-quote-sub').textContent = 'Based on your ' + total + ' logged pieces';
+  }
 }
 
 function appendTyping() {
