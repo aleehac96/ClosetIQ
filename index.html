@@ -367,7 +367,7 @@ html, body { height: 100%; background: var(--cream); color: var(--ink); font-fam
           <div class="chat-area" id="chat-area">
             <div class="msg ai">
               <div class="av">✦</div>
-              <div class="bubble">Bonjour. I've studied your 47 pieces — your average cost-per-wear is $4.20, you have 11 items collecting dust, and your strongest gap is a neutral ankle boot that unlocks 14 new combinations. What shall we discuss?</div>
+              <div class="bubble">Bonjour. I've studied your 47 pieces — your average cost-per-wear is $4.20, eleven items are collecting dust, and your strongest gap is a neutral ankle boot that unlocks 14 new combinations. What shall we explore?</div>
             </div>
           </div>
           <div class="suggestions">
@@ -378,7 +378,7 @@ html, body { height: 100%; background: var(--cream); color: var(--ink); font-fam
             <button class="sug" onclick="presend(this)">My color palette?</button>
           </div>
           <div class="chat-input-row">
-            <input class="chat-input" id="chat-input" type="text" placeholder="Ask your stylist..." onkeydown="if(event.key==='Enter')sendChat()" />
+            <input class="chat-input" id="chat-input" type="text" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendChat()" />
             <button class="send-btn" onclick="sendChat()" aria-label="Send">
               <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
             </button>
@@ -444,38 +444,43 @@ html, body { height: 100%; background: var(--cream); color: var(--ink); font-fam
           <div class="page-title">Log<br><em>Outfit</em></div>
         </div>
 
-        <div class="card">
+        <!-- STEP 1: upload -->
+        <div id="step-upload" class="card">
           <div class="card-label">Scan today's outfit</div>
-          <div id="upload-area" onclick="document.getElementById('photo-input').click()" style="border:1px dashed var(--border2);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:background 0.2s;">
-            <div style="font-size:32px;margin-bottom:10px;">◎</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;color:var(--ink);margin-bottom:6px;">Upload an outfit photo</div>
-            <div style="font-size:11px;font-weight:300;color:var(--taupe);letter-spacing:0.04em;">AI will identify every piece you're wearing</div>
+          <div onclick="document.getElementById('photo-input').click()" style="border:1px dashed var(--border2);border-radius:var(--radius);padding:36px 20px;text-align:center;cursor:pointer;">
+            <div style="font-size:36px;margin-bottom:12px;">◎</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--ink);margin-bottom:6px;">Tap to upload outfit photo</div>
+            <div style="font-size:11px;font-weight:300;color:var(--taupe);letter-spacing:0.06em;text-transform:uppercase;">AI identifies every piece you're wearing</div>
           </div>
-          <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="handlePhoto(this)">
-          <div id="photo-preview" style="display:none;margin-top:12px;">
-            <img id="preview-img" style="width:100%;border-radius:var(--radius-sm);max-height:320px;object-fit:cover;" />
+          <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp,image/jpg" style="display:none;" onchange="handlePhoto(this)">
+        </div>
+
+        <!-- STEP 2: analysing -->
+        <div id="step-analysing" class="card" style="display:none;">
+          <div style="text-align:center;padding:28px 0;">
+            <div style="font-size:36px;margin-bottom:14px;">◎</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--ink);margin-bottom:8px;font-style:italic;">Analysing your outfit...</div>
+            <div style="display:flex;justify-content:center;margin-bottom:10px;">
+              <div class="typing-bub"><div class="dot-t"></div><div class="dot-t"></div><div class="dot-t"></div></div>
+            </div>
+            <div id="analyse-status" style="font-size:11px;font-weight:300;color:var(--taupe);letter-spacing:0.06em;">Scanning your photo...</div>
           </div>
         </div>
 
-        <div id="scanning-card" class="card" style="display:none;">
-          <div class="card-label">Scanning</div>
-          <div style="display:flex;align-items:center;gap:12px;padding:8px 0;">
-            <div class="typing-bub"><div class="dot-t"></div><div class="dot-t"></div><div class="dot-t"></div></div>
-            <div style="font-size:13px;font-weight:300;color:var(--mocha);">Identifying your pieces...</div>
-          </div>
-        </div>
-
-        <div id="results-card" class="card" style="display:none;">
-          <div class="card-label">Items identified</div>
+        <!-- STEP 3: results -->
+        <div id="step-results" class="card" style="display:none;">
+          <div class="card-label">Items detected</div>
           <div id="identified-list"></div>
-          <button class="add-btn" style="margin-top:14px;" onclick="addAllIdentified()">Add all to closet + log wear</button>
+          <button class="add-btn" style="margin-top:16px;" onclick="addAllIdentified()">Add to closet + log wear</button>
         </div>
 
-        <div id="wear-logged-card" class="card" style="display:none;background:rgba(122,158,130,0.08);border-color:rgba(122,158,130,0.3);">
-          <div style="text-align:center;padding:10px 0;">
-            <div style="font-size:28px;margin-bottom:8px;">✓</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--ink);margin-bottom:4px;">Outfit logged</div>
-            <div style="font-size:12px;font-weight:300;color:var(--mocha);">Wear counts updated. Cost-per-wear recalculated.</div>
+        <!-- STEP 4: success -->
+        <div id="step-success" class="card" style="display:none;background:rgba(122,158,130,0.08);border-color:rgba(122,158,130,0.3);">
+          <div style="text-align:center;padding:16px 0;">
+            <div style="font-size:36px;margin-bottom:10px;">✓</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;font-style:italic;color:var(--ink);margin-bottom:6px;">Outfit logged</div>
+            <div style="font-size:12px;font-weight:300;color:var(--mocha);margin-bottom:18px;">Wear counts updated. Cost-per-wear recalculated.</div>
+            <button class="add-btn" style="background:transparent;color:var(--mocha);border:0.5px solid var(--border2);" onclick="resetSync()">Log another outfit</button>
           </div>
         </div>
 
@@ -582,7 +587,7 @@ async function sendChat() {
     });
     const data = await res.json();
     t.remove();
-    const reply = data.content?.[0]?.text || 'Un moment, s\'il vous plaît — try again shortly.';
+    const reply = data.content?.[0]?.text || 'Un moment — try again shortly.';
     chatHistory.push({ role: 'assistant', content: reply });
     appendMsg('ai', reply);
   } catch(e) {
@@ -607,19 +612,36 @@ function appendMsg(role, text) {
 
 let identifiedItems = [];
 
-function compressImage(dataUrl, maxWidth) {
+function showStep(step) {
+  ['upload','analysing','results','success'].forEach(s => {
+    const el = document.getElementById('step-' + s);
+    if (el) el.style.display = s === step ? 'block' : 'none';
+  });
+}
+
+function resetSync() {
+  identifiedItems = [];
+  document.getElementById('photo-input').value = '';
+  showStep('upload');
+  document.getElementById('scroll-area').scrollTop = 0;
+}
+
+function compressImage(dataUrl, maxDim, quality) {
   return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
+    const image = new Image();
+    image.onload = () => {
+      let w = image.width, h = image.height;
+      const max = maxDim || 800;
+      if (w > max || h > max) {
+        if (w > h) { h = Math.round(h * max / w); w = max; }
+        else { w = Math.round(w * max / h); h = max; }
+      }
       const canvas = document.createElement('canvas');
-      let w = img.width, h = img.height;
-      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
       canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL('image/jpeg', 0.82));
+      canvas.getContext('2d').drawImage(image, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality || 0.75));
     };
-    img.src = dataUrl;
+    image.src = dataUrl;
   });
 }
 
@@ -627,36 +649,38 @@ async function handlePhoto(input) {
   const file = input.files[0];
   if (!file) return;
 
-  const preview = document.getElementById('photo-preview');
-  const img = document.getElementById('preview-img');
   const reader = new FileReader();
-
   reader.onload = async (e) => {
-    img.src = e.target.result;
-    preview.style.display = 'block';
-
-    document.getElementById('scanning-card').style.display = 'block';
-    document.getElementById('results-card').style.display = 'none';
-    document.getElementById('wear-logged-card').style.display = 'none';
-
-    // compress image to under 1MB before sending
-    const compressedBase64 = await compressImage(e.target.result, 1000);
-    const base64 = compressedBase64.split(',')[1];
-    const mediaType = 'image/jpeg';
+    showStep('analysing');
+    document.getElementById('analyse-status').textContent = 'Compressing image...';
 
     try {
+      // Compress aggressively: max 800px, 75% quality
+      const compressed = await compressImage(e.target.result, 800, 0.75);
+      const base64 = compressed.split(',')[1];
+      
+      document.getElementById('analyse-status').textContent = 'Your stylist is reading your look...';
+
       const res = await fetch('/api/identify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64, mediaType })
+        body: JSON.stringify({ image: base64, mediaType: 'image/jpeg' })
       });
+
+      if (!res.ok) {
+        throw new Error('Server error ' + res.status);
+      }
+
       const data = await res.json();
       identifiedItems = data.items || [];
-      document.getElementById('scanning-card').style.display = 'none';
+
+      document.getElementById('analyse-status').textContent = 'Done!';
 
       if (identifiedItems.length === 0) {
-        document.getElementById('identified-list').innerHTML = '<div style="font-size:13px;font-weight:300;color:var(--mocha);padding:8px 0;">No clothing items detected — try a clearer photo.</div>';
-        document.getElementById('results-card').style.display = 'block';
+        identifiedItems = [];
+        const list = document.getElementById('identified-list');
+        list.innerHTML = '<div style="font-size:13px;font-weight:300;color:var(--mocha);padding:8px 0;text-align:center;">Could not detect clothing — try a brighter, clearer photo with the full outfit visible.</div>';
+        showStep('results');
         return;
       }
 
@@ -665,13 +689,15 @@ async function handlePhoto(input) {
       identifiedItems.forEach(item => {
         const div = document.createElement('div');
         div.className = 'item';
-        div.innerHTML = `<div class="swatch" style="background:${item.color};"></div><div class="item-body"><div class="item-name">${item.name}</div><div class="item-meta">${item.category} · ${item.note}</div></div><div class="item-right"><span class="badge badge-ok">detected</span></div>`;
+        div.innerHTML = `<div class="swatch" style="background:${item.color};border-radius:8px;"></div><div class="item-body"><div class="item-name">${item.name}</div><div class="item-meta">${item.category} · ${item.note}</div></div><div class="item-right"><span class="badge badge-ok">detected</span></div>`;
         list.appendChild(div);
       });
-      document.getElementById('results-card').style.display = 'block';
-    } catch(e) {
-      document.getElementById('scanning-card').style.display = 'none';
-      alert('Error scanning photo — please try again.');
+      showStep('results');
+
+    } catch(err) {
+      console.error(err);
+      showStep('upload');
+      alert('Something went wrong — please try again.');
     }
   };
   reader.readAsDataURL(file);
@@ -680,26 +706,22 @@ async function handlePhoto(input) {
 function addAllIdentified() {
   const list = document.getElementById('closet-list');
   identifiedItems.forEach(item => {
-    const existing = Array.from(list.querySelectorAll('.item-name')).find(el => el.textContent.toLowerCase() === item.name.toLowerCase());
+    const existing = Array.from(list.querySelectorAll('.item-name'))
+      .find(el => el.textContent.toLowerCase().includes(item.name.toLowerCase().split(' ').slice(-2).join(' ')));
     if (existing) {
       const meta = existing.nextElementSibling;
-      const wearMatch = meta.textContent.match(/(\d+) wear/);
-      if (wearMatch) {
-        const newCount = parseInt(wearMatch[1]) + 1;
-        meta.textContent = meta.textContent.replace(/\d+ wear/, newCount + ' wear');
-      }
+      const m = meta.textContent.match(/(\d+) wear/);
+      if (m) meta.textContent = meta.textContent.replace(/\d+ wear/, (parseInt(m[1])+1) + ' wear');
     } else {
       const div = document.createElement('div');
       div.className = 'item';
-      div.innerHTML = `<div class="swatch" style="background:${item.color};"></div><div class="item-body"><div class="item-name">${item.name}</div><div class="item-meta">${item.category} · 1 wear · AI detected</div></div><div class="item-right"><div class="cpw mid">—</div><div class="cpw-label">new</div></div>`;
+      div.innerHTML = `<div class="swatch" style="background:${item.color};border-radius:8px;"></div><div class="item-body"><div class="item-name">${item.name}</div><div class="item-meta">${item.category} · 1 wear · AI detected</div></div><div class="item-right"><div class="cpw mid">—</div><div class="cpw-label">new</div></div>`;
       list.prepend(div);
     }
   });
-  document.getElementById('results-card').style.display = 'none';
-  document.getElementById('wear-logged-card').style.display = 'block';
-  document.getElementById('photo-preview').style.display = 'none';
-  document.getElementById('photo-input').value = '';
   identifiedItems = [];
+  showStep('success');
+  document.getElementById('scroll-area').scrollTop = 0;
 }
 
 function appendTyping() {
