@@ -440,64 +440,45 @@ html, body { height: 100%; background: var(--cream); color: var(--ink); font-fam
     <div class="section" id="sec-sync">
       <div class="page">
         <div class="page-header">
-          <div class="page-eyebrow">Passive intelligence</div>
-          <div class="page-title">Zero<br><em>Effort</em></div>
+          <div class="page-eyebrow">AI vision</div>
+          <div class="page-title">Log<br><em>Outfit</em></div>
         </div>
 
         <div class="card">
-          <div class="card-label">Connected sources</div>
-          <div class="source-grid">
-            <div class="source" id="src-gmail" onclick="connectSrc('gmail',this)">
-              <div class="source-icon">✉</div>
-              <div class="source-name">Gmail</div>
-              <div class="source-desc">Auto-parses receipts from any brand</div>
-              <div class="source-status off" id="st-gmail">Tap to connect</div>
-            </div>
-            <div class="source" id="src-photos" onclick="connectSrc('photos',this)">
-              <div class="source-icon">◎</div>
-              <div class="source-name">Photos</div>
-              <div class="source-desc">Vision AI logs wears from outfit photos</div>
-              <div class="source-status off" id="st-photos">Tap to connect</div>
-            </div>
-            <div class="source" id="src-ig" onclick="connectSrc('ig',this)">
-              <div class="source-icon">◇</div>
-              <div class="source-name">Instagram</div>
-              <div class="source-desc">Tracks posts, links to engagement</div>
-              <div class="source-status off" id="st-ig">Tap to connect</div>
-            </div>
-            <div class="source" id="src-pay" onclick="connectSrc('pay',this)">
-              <div class="source-icon">◈</div>
-              <div class="source-name">Apple Pay</div>
-              <div class="source-desc">Detects fashion purchases instantly</div>
-              <div class="source-status off" id="st-pay">Tap to connect</div>
-            </div>
+          <div class="card-label">Scan today's outfit</div>
+          <div id="upload-area" onclick="document.getElementById('photo-input').click()" style="border:1px dashed var(--border2);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:background 0.2s;">
+            <div style="font-size:32px;margin-bottom:10px;">◎</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;color:var(--ink);margin-bottom:6px;">Upload an outfit photo</div>
+            <div style="font-size:11px;font-weight:300;color:var(--taupe);letter-spacing:0.04em;">AI will identify every piece you're wearing</div>
+          </div>
+          <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="handlePhoto(this)">
+          <div id="photo-preview" style="display:none;margin-top:12px;">
+            <img id="preview-img" style="width:100%;border-radius:var(--radius-sm);max-height:320px;object-fit:cover;" />
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-label">How it works</div>
-          <div class="insight">
-            <div class="insight-num">I</div>
-            <div class="insight-body">
-              <div class="insight-title">Buy something online</div>
-              <div class="insight-desc">The receipt hits Gmail. ClosetIQ reads it before you've even opened the package — brand, item, price, color, all logged.</div>
-            </div>
-          </div>
-          <div class="insight">
-            <div class="insight-num">II</div>
-            <div class="insight-body">
-              <div class="insight-title">Take a mirror selfie</div>
-              <div class="insight-desc">Already in your camera roll. Vision AI identifies what you're wearing and logs the wear. No upload, no tagging, no friction.</div>
-            </div>
-          </div>
-          <div class="insight">
-            <div class="insight-num">III</div>
-            <div class="insight-body">
-              <div class="insight-title">AI builds your profile in 30 days</div>
-              <div class="insight-desc">Learns your palette, your patterns, your dead stock habits. Smarter every day — with zero extra effort from you.</div>
-            </div>
+        <div id="scanning-card" class="card" style="display:none;">
+          <div class="card-label">Scanning</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:8px 0;">
+            <div class="typing-bub"><div class="dot-t"></div><div class="dot-t"></div><div class="dot-t"></div></div>
+            <div style="font-size:13px;font-weight:300;color:var(--mocha);">Identifying your pieces...</div>
           </div>
         </div>
+
+        <div id="results-card" class="card" style="display:none;">
+          <div class="card-label">Items identified</div>
+          <div id="identified-list"></div>
+          <button class="add-btn" style="margin-top:14px;" onclick="addAllIdentified()">Add all to closet + log wear</button>
+        </div>
+
+        <div id="wear-logged-card" class="card" style="display:none;background:rgba(122,158,130,0.08);border-color:rgba(122,158,130,0.3);">
+          <div style="text-align:center;padding:10px 0;">
+            <div style="font-size:28px;margin-bottom:8px;">✓</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--ink);margin-bottom:4px;">Outfit logged</div>
+            <div style="font-size:12px;font-weight:300;color:var(--mocha);">Wear counts updated. Cost-per-wear recalculated.</div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -622,6 +603,85 @@ function appendMsg(role, text) {
   div.innerHTML = `<div class="av">${role === 'ai' ? '✦' : '○'}</div><div class="bubble">${text}</div>`;
   area.appendChild(div);
   area.scrollTop = area.scrollHeight;
+}
+
+let identifiedItems = [];
+
+async function handlePhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const preview = document.getElementById('photo-preview');
+  const img = document.getElementById('preview-img');
+  const reader = new FileReader();
+
+  reader.onload = async (e) => {
+    img.src = e.target.result;
+    preview.style.display = 'block';
+
+    document.getElementById('scanning-card').style.display = 'block';
+    document.getElementById('results-card').style.display = 'none';
+    document.getElementById('wear-logged-card').style.display = 'none';
+
+    const base64 = e.target.result.split(',')[1];
+    const mediaType = file.type;
+
+    try {
+      const res = await fetch('/api/identify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64, mediaType })
+      });
+      const data = await res.json();
+      identifiedItems = data.items || [];
+      document.getElementById('scanning-card').style.display = 'none';
+
+      if (identifiedItems.length === 0) {
+        document.getElementById('identified-list').innerHTML = '<div style="font-size:13px;font-weight:300;color:var(--mocha);padding:8px 0;">No clothing items detected — try a clearer photo.</div>';
+        document.getElementById('results-card').style.display = 'block';
+        return;
+      }
+
+      const list = document.getElementById('identified-list');
+      list.innerHTML = '';
+      identifiedItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `<div class="swatch" style="background:${item.color};"></div><div class="item-body"><div class="item-name">${item.name}</div><div class="item-meta">${item.category} · ${item.note}</div></div><div class="item-right"><span class="badge badge-ok">detected</span></div>`;
+        list.appendChild(div);
+      });
+      document.getElementById('results-card').style.display = 'block';
+    } catch(e) {
+      document.getElementById('scanning-card').style.display = 'none';
+      alert('Error scanning photo — please try again.');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function addAllIdentified() {
+  const list = document.getElementById('closet-list');
+  identifiedItems.forEach(item => {
+    const existing = Array.from(list.querySelectorAll('.item-name')).find(el => el.textContent.toLowerCase() === item.name.toLowerCase());
+    if (existing) {
+      const meta = existing.nextElementSibling;
+      const wearMatch = meta.textContent.match(/(\d+) wear/);
+      if (wearMatch) {
+        const newCount = parseInt(wearMatch[1]) + 1;
+        meta.textContent = meta.textContent.replace(/\d+ wear/, newCount + ' wear');
+      }
+    } else {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `<div class="swatch" style="background:${item.color};"></div><div class="item-body"><div class="item-name">${item.name}</div><div class="item-meta">${item.category} · 1 wear · AI detected</div></div><div class="item-right"><div class="cpw mid">—</div><div class="cpw-label">new</div></div>`;
+      list.prepend(div);
+    }
+  });
+  document.getElementById('results-card').style.display = 'none';
+  document.getElementById('wear-logged-card').style.display = 'block';
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('photo-input').value = '';
+  identifiedItems = [];
 }
 
 function appendTyping() {
