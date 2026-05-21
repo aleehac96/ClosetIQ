@@ -607,6 +607,22 @@ function appendMsg(role, text) {
 
 let identifiedItems = [];
 
+function compressImage(dataUrl, maxWidth) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = dataUrl;
+  });
+}
+
 async function handlePhoto(input) {
   const file = input.files[0];
   if (!file) return;
@@ -623,8 +639,10 @@ async function handlePhoto(input) {
     document.getElementById('results-card').style.display = 'none';
     document.getElementById('wear-logged-card').style.display = 'none';
 
-    const base64 = e.target.result.split(',')[1];
-    const mediaType = file.type;
+    // compress image to under 1MB before sending
+    const compressedBase64 = await compressImage(e.target.result, 1000);
+    const base64 = compressedBase64.split(',')[1];
+    const mediaType = 'image/jpeg';
 
     try {
       const res = await fetch('/api/identify', {
